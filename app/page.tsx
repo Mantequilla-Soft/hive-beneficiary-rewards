@@ -48,45 +48,57 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background animate-[fade-in_0.5s_ease-out]">
       <div className="mx-auto max-w-5xl px-4 py-8">
         <DashboardHeader />
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between animate-[slide-up_0.4s_ease-out_0.1s_both]">
           <AccountInput value={account} onChange={setAccount} />
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-            <Button onClick={handleFetch} className="w-full sm:w-auto">
-              {loading ? "Loading..." : "Fetch rewards"}
+            <Button
+              onClick={handleFetch}
+              className="w-full sm:w-auto transition-transform duration-200 hover:scale-105 active:scale-95"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Loading...
+                </span>
+              ) : (
+                "Fetch rewards"
+              )}
             </Button>
           </div>
         </div>
 
         {error && (
-          <div className="mt-6 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mt-6 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 animate-[scale-in_0.3s_ease-out]">
             {error}
           </div>
         )}
 
         {data && (
-          <>
+          <div className="animate-[slide-up_0.4s_ease-out]">
             <SummaryCards
               summary={{
                 totalHbd: data.totals.hbd,
                 totalHp: data.totals.hp,
+                totalValue: data.totals.totalValue,
                 payoutCount: data.totals.payouts,
               }}
             />
 
             {data.by_day.length === 0 ? (
-              <div className="mt-8 rounded-md border border-muted bg-muted/30 px-4 py-8 text-center text-muted-foreground">
+              <div className="mt-8 rounded-md border border-muted bg-muted/30 px-4 py-8 text-center text-muted-foreground animate-[fade-in_0.5s_ease-out]">
                 No beneficiary rewards found for this account in the selected time range.
               </div>
             ) : (
               <RewardsTable data={data.by_day} />
             )}
-          </>
+          </div>
         )}
       </div>
     </main>

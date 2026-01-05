@@ -5,11 +5,10 @@ interface DailyRow {
   hbd: number
   hp: number
   payouts: number
+  hivePrice: number
 }
 
-function parseAsset(
-  asset?: string | { amount: string; nai: string; precision: number }
-): number {
+function parseAsset(asset?: string | { amount: string; nai: string; precision: number }): number {
   if (!asset) return 0
 
   // Object format: { amount: "1234", nai: "@@000000013", precision: 3 }
@@ -68,12 +67,19 @@ async function getHpPerVestsRatio(): Promise<number> {
   // total_vesting_fund_hive: "123456.789 HIVE"
   // total_vesting_shares: "987654321.123456 VESTS"
   const fundHive = parseAsset(props.total_vesting_fund_hive as string) // HIVE
-  const totalVests = parseAsset(props.total_vesting_shares as string)  // VESTS
+  const totalVests = parseAsset(props.total_vesting_shares as string) // VESTS
 
   if (!fundHive || !totalVests) return 0
 
   // HP per 1 VESTS (HIVE per VESTS)
   return fundHive / totalVests
+}
+
+async function getHivePrice(): Promise<number> {
+  const ticker = await hiveRpc("condenser_api.get_ticker", [])
+  // latest is the most recent trade price (HIVE in HBD)
+  const price = Number.parseFloat(ticker.latest)
+  return Number.isFinite(price) ? price : 0
 }
 
 export async function GET(req: NextRequest) {
@@ -91,8 +97,7 @@ export async function GET(req: NextRequest) {
   let totalPayouts = 0
 
   try {
-    // 1) Get conversion ratio once (HP per VEST)
-    const hpPerVests = await getHpPerVestsRatio()
+    const [hpPerVests, hivePrice] = await Promise.all([getHpPerVestsRatio(), getHivePrice()])
 
     // 2) Account history pagination
     let start = -1
@@ -101,8 +106,10 @@ export async function GET(req: NextRequest) {
     const seen = new Set<number>()
 
     while (keepGoing) {
-      const history: [number, { timestamp: string; op: [string, Record<string, unknown>] }][] =
-        await hiveRpc("condenser_api.get_account_history", [account, start, batchSize])
+      const history: [number, { timestamp: string; op: [string, Record<string, unknown>] }][] = await hiveRpc(
+        "condenser_api.get_account_history",
+        [account, start, batchSize],
+      )
 
       if (!history || history.length === 0) break
 
@@ -140,6 +147,7 @@ export async function GET(req: NextRequest) {
             hbd: 0,
             hp: 0,
             payouts: 0,
+            hivePrice: hivePrice,
           })
         }
 
@@ -159,22 +167,23 @@ export async function GET(req: NextRequest) {
 
     const by_day = Array.from(daily.values()).sort((a, b) => (a.date < b.date ? 1 : -1))
 
-    // Total combined (nota: mezcla unidades, pero lo quieres así por ahora)
-    const totalCombined = totalHbd + totalHp
+    const totalValue = totalHbd + totalHp * hivePrice
 
     return NextResponse.json({
       account,
       range_days: days,
+      hivePrice: Number(hivePrice.toFixed(3)),
       totals: {
         hbd: Number(totalHbd.toFixed(3)),
         hp: Number(totalHp.toFixed(3)),
-        combined: Number(totalCombined.toFixed(3)),
+        totalValue: Number(totalValue.toFixed(3)),
         payouts: totalPayouts,
       },
       by_day: by_day.map((r) => ({
         date: r.date,
         hbd: Number(r.hbd.toFixed(3)),
         hp: Number(r.hp.toFixed(3)),
+        totalHbd: Number((r.hbd + r.hp * r.hivePrice).toFixed(3)),
         payouts: r.payouts,
       })),
     })

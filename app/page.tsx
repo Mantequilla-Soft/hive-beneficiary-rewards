@@ -74,9 +74,8 @@ export default function Page() {
             <SummaryCards
               summary={{
                 totalHbd: data.totals.hbd,
-                totalHive: data.totals.hive,
-                totalVests: data.totals.vests,
-                payoutCount: data.totals.count,
+                totalHp: data.totals.hp,
+                payoutCount: data.totals.payouts,
               }}
             />
 

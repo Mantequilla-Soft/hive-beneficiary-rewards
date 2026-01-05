@@ -3,22 +3,23 @@ import { type NextRequest, NextResponse } from "next/server"
 interface DailyRow {
   date: string
   hbd: number
-  hive: number
-  vests: number
-  count: number
+  hp: number
+  payouts: number
 }
 
-function parseAsset(asset?: string | { amount: string; nai: string; precision: number }): number {
+function parseAsset(
+  asset?: string | { amount: string; nai: string; precision: number }
+): number {
   if (!asset) return 0
 
-  // Handle object format: { amount: "1234", nai: "@@000000013", precision: 3 }
+  // Object format: { amount: "1234", nai: "@@000000013", precision: 3 }
   if (typeof asset === "object" && asset.amount !== undefined) {
     const amount = Number(asset.amount)
     const precision = asset.precision || 0
     return Number.isFinite(amount) ? amount / Math.pow(10, precision) : 0
   }
 
-  // Handle string format: "1.234 HBD"
+  // String format: "1.234 HBD"
   if (typeof asset === "string") {
     const n = Number.parseFloat(asset.split(" ")[0])
     return Number.isFinite(n) ? n : 0
@@ -48,6 +49,7 @@ async function hiveRpc(method: string, params: unknown[]) {
       method,
       params,
     }),
+    // cache corto, suficiente para dashboard
     next: { revalidate: 60 },
   })
 
@@ -58,6 +60,22 @@ async function hiveRpc(method: string, params: unknown[]) {
   return json.result
 }
 
+async function getHpPerVestsRatio(): Promise<number> {
+  // dynamic global props (condenser)
+  const props = await hiveRpc("condenser_api.get_dynamic_global_properties", [])
+
+  // Typical strings:
+  // total_vesting_fund_hive: "123456.789 HIVE"
+  // total_vesting_shares: "987654321.123456 VESTS"
+  const fundHive = parseAsset(props.total_vesting_fund_hive as string) // HIVE
+  const totalVests = parseAsset(props.total_vesting_shares as string)  // VESTS
+
+  if (!fundHive || !totalVests) return 0
+
+  // HP per 1 VESTS (HIVE per VESTS)
+  return fundHive / totalVests
+}
+
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams
   const account = params.get("account") || "spk.beneficiary"
@@ -66,33 +84,31 @@ export async function GET(req: NextRequest) {
   const cutoff = cutoffDate(days)
 
   const daily = new Map<string, DailyRow>()
-  const totals = { hbd: 0, hive: 0, vests: 0, count: 0 }
+
+  // Totals
+  let totalHbd = 0
+  let totalHp = 0
+  let totalPayouts = 0
 
   try {
-    // Use condenser_api.get_account_history
-    // params: [account, start (-1 = most recent), limit (max 1000)]
+    // 1) Get conversion ratio once (HP per VEST)
+    const hpPerVests = await getHpPerVestsRatio()
+
+    // 2) Account history pagination
     let start = -1
     let keepGoing = true
     const batchSize = 1000
     const seen = new Set<number>()
 
     while (keepGoing) {
-      // Fetch account history batch
-      const history: [number, { timestamp: string; op: [string, Record<string, unknown>] }][] = await hiveRpc(
-        "condenser_api.get_account_history",
-        [account, start, batchSize],
-      )
+      const history: [number, { timestamp: string; op: [string, Record<string, unknown>] }][] =
+        await hiveRpc("condenser_api.get_account_history", [account, start, batchSize])
 
-      console.log("[v0] Fetched history batch, start:", start, "count:", history?.length)
-
-      if (!history || history.length === 0) {
-        break
-      }
+      if (!history || history.length === 0) break
 
       let oldestSeq = Number.POSITIVE_INFINITY
 
       for (const [seq, tx] of history) {
-        // Skip if already processed (pagination overlap)
         if (seen.has(seq)) continue
         seen.add(seq)
 
@@ -100,23 +116,21 @@ export async function GET(req: NextRequest) {
 
         const [opType, opValue] = tx.op
 
-        // Only process comment_benefactor_reward operations
         if (opType !== "comment_benefactor_reward") continue
 
         const timestamp = tx.timestamp || ""
         const ts = new Date(timestamp.endsWith("Z") ? timestamp : timestamp + "Z")
 
-        // Stop if we've gone past our date range
         if (ts < cutoff) {
           keepGoing = false
           continue
         }
 
-        console.log("[v0] Found benefactor reward:", timestamp, opValue)
+        const hbd = parseAsset(opValue.hbd_payout as any)
+        const vests = parseAsset(opValue.vesting_payout as any)
 
-        const hbd = parseAsset(opValue.hbd_payout as string)
-        const hive = parseAsset(opValue.hive_payout as string)
-        const vests = parseAsset(opValue.vesting_payout as string)
+        // Convert VESTS -> HP
+        const hp = hpPerVests > 0 ? vests * hpPerVests : 0
 
         const day = dayKey(timestamp)
 
@@ -124,43 +138,45 @@ export async function GET(req: NextRequest) {
           daily.set(day, {
             date: day,
             hbd: 0,
-            hive: 0,
-            vests: 0,
-            count: 0,
+            hp: 0,
+            payouts: 0,
           })
         }
 
         const d = daily.get(day)!
         d.hbd += hbd
-        d.hive += hive
-        d.vests += vests
-        d.count += 1
+        d.hp += hp
+        d.payouts += 1
 
-        totals.hbd += hbd
-        totals.hive += hive
-        totals.vests += vests
-        totals.count += 1
+        totalHbd += hbd
+        totalHp += hp
+        totalPayouts += 1
       }
 
-      // Move to older history
-      if (oldestSeq <= 1 || history.length < batchSize) {
-        break
-      }
+      if (oldestSeq <= 1 || history.length < batchSize) break
       start = oldestSeq - 1
     }
 
     const by_day = Array.from(daily.values()).sort((a, b) => (a.date < b.date ? 1 : -1))
 
+    // Total combined (nota: mezcla unidades, pero lo quieres así por ahora)
+    const totalCombined = totalHbd + totalHp
+
     return NextResponse.json({
       account,
       range_days: days,
       totals: {
-        hbd: Number(totals.hbd.toFixed(3)),
-        hive: Number(totals.hive.toFixed(3)),
-        vests: Number(totals.vests.toFixed(6)),
-        count: totals.count,
+        hbd: Number(totalHbd.toFixed(3)),
+        hp: Number(totalHp.toFixed(3)),
+        combined: Number(totalCombined.toFixed(3)),
+        payouts: totalPayouts,
       },
-      by_day,
+      by_day: by_day.map((r) => ({
+        date: r.date,
+        hbd: Number(r.hbd.toFixed(3)),
+        hp: Number(r.hp.toFixed(3)),
+        payouts: r.payouts,
+      })),
     })
   } catch (err) {
     console.error("Account history error:", err)

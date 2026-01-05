@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 interface SummaryCardsProps {
   summary: {
     totalHbd?: number
-    totalHive?: number
-    totalVests?: number
+    totalHp?: number
     payoutCount?: number
   }
 }
@@ -17,14 +16,9 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       suffix: "HBD",
     },
     {
-      title: "Total HIVE",
-      value: (summary.totalHive ?? 0).toFixed(3),
-      suffix: "HIVE",
-    },
-    {
-      title: "Total VESTS",
-      value: (summary.totalVests ?? 0).toFixed(6),
-      suffix: "VESTS",
+      title: "Total Hive Power",
+      value: (summary.totalHp ?? 0).toFixed(3),
+      suffix: "HP",
     },
     {
       title: "Payouts",
@@ -34,7 +28,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   ]
 
   return (
-    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mt-8 grid gap-4 sm:grid-cols-3">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardHeader className="pb-2">

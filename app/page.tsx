@@ -31,9 +31,7 @@ export default function Page() {
 
       const days = daysMap[timeRange]
 
-      const res = await fetch(
-        `/api/beneficiary-rewards?account=${account}&days=${days}`
-      )
+      const res = await fetch(`/api/beneficiary-rewards?account=${account}&days=${days}`)
 
       if (!res.ok) {
         throw new Error("Failed to fetch beneficiary rewards")
@@ -82,7 +80,13 @@ export default function Page() {
               }}
             />
 
-            <RewardsTable data={data.by_day} />
+            {data.by_day.length === 0 ? (
+              <div className="mt-8 rounded-md border border-muted bg-muted/30 px-4 py-8 text-center text-muted-foreground">
+                No beneficiary rewards found for this account in the selected time range.
+              </div>
+            ) : (
+              <RewardsTable data={data.by_day} />
+            )}
           </>
         )}
       </div>

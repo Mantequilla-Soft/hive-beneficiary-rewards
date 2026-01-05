@@ -2,10 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface SummaryCardsProps {
   summary: {
-    totalHbd: number
-    totalHive: number
-    totalVests: number
-    payoutCount: number
+    totalHbd?: number
+    totalHive?: number
+    totalVests?: number
+    payoutCount?: number
   }
 }
 
@@ -13,22 +13,22 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   const cards = [
     {
       title: "Total HBD",
-      value: summary.totalHbd.toFixed(3),
+      value: (summary.totalHbd ?? 0).toFixed(3),
       suffix: "HBD",
     },
     {
       title: "Total HIVE",
-      value: summary.totalHive.toFixed(3),
+      value: (summary.totalHive ?? 0).toFixed(3),
       suffix: "HIVE",
     },
     {
       title: "Total VESTS",
-      value: summary.totalVests.toFixed(6),
+      value: (summary.totalVests ?? 0).toFixed(6),
       suffix: "VESTS",
     },
     {
       title: "Payouts",
-      value: summary.payoutCount.toString(),
+      value: (summary.payoutCount ?? 0).toString(),
       suffix: "",
     },
   ]

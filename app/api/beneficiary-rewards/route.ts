@@ -1,23 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-/**
- * enum_virtual_ops returns:
- * ops: { [key: string]: { block, timestamp, op: [number, object] } }
- */
-type VirtualOp = {
-  block: number
-  timestamp: string
-  op: [
-    number,
-    {
-      benefactor: string
-      hbd_payout?: string | { amount: string; nai: string; precision: number }
-      hive_payout?: string | { amount: string; nai: string; precision: number }
-      vesting_payout?: string | { amount: string; nai: string; precision: number }
-    },
-  ]
-}
-
 interface DailyRow {
   date: string
   hbd: number
@@ -56,7 +38,7 @@ function cutoffDate(days: number): Date {
   return d
 }
 
-async function hiveRpc(method: string, params: any) {
+async function hiveRpc(method: string, params: unknown[]) {
   const res = await fetch("https://api.hive.blog", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -66,7 +48,7 @@ async function hiveRpc(method: string, params: any) {
       method,
       params,
     }),
-    next: { revalidate: 300 },
+    next: { revalidate: 60 },
   })
 
   const json = await res.json()
@@ -87,79 +69,54 @@ export async function GET(req: NextRequest) {
   const totals = { hbd: 0, hive: 0, vests: 0, count: 0 }
 
   try {
-    // 1) Head block
-    const props = await hiveRpc("database_api.get_dynamic_global_properties", {})
-
-    let block = props.head_block_number
-
-    const BLOCKS_PER_DAY = 28800
-    const MAX_BLOCKS = BLOCKS_PER_DAY * days
-
-    let scanned = 0
+    // Use condenser_api.get_account_history
+    // params: [account, start (-1 = most recent), limit (max 1000)]
+    let start = -1
     let keepGoing = true
+    const batchSize = 1000
+    const seen = new Set<number>()
 
-    // 2) Scan virtual ops
-    while (keepGoing && scanned < MAX_BLOCKS) {
-      const result = await hiveRpc("account_history_api.enum_virtual_ops", {
-        block_range_begin: Math.max(block - 1000, 0),
-        block_range_end: block,
-        include_reversible: false,
-      })
+    while (keepGoing) {
+      // Fetch account history batch
+      const history: [number, { timestamp: string; op: [string, Record<string, unknown>] }][] = await hiveRpc(
+        "condenser_api.get_account_history",
+        [account, start, batchSize],
+      )
 
-      if (scanned === 0) {
-        console.log("[v0] enum_virtual_ops result keys:", Object.keys(result))
-        console.log("[v0] result.ops type:", typeof result.ops, Array.isArray(result.ops))
-        if (result.ops && result.ops.length > 0) {
-          console.log("[v0] First op structure:", JSON.stringify(result.ops[0], null, 2))
-        }
+      console.log("[v0] Fetched history batch, start:", start, "count:", history?.length)
+
+      if (!history || history.length === 0) {
+        break
       }
 
-      const ops = result.ops || []
+      let oldestSeq = Number.POSITIVE_INFINITY
 
-      if (!Array.isArray(ops)) {
-        console.log("[v0] ops is not an array, type:", typeof ops)
-        block -= 1000
-        scanned += 1000
-        continue
-      }
+      for (const [seq, tx] of history) {
+        // Skip if already processed (pagination overlap)
+        if (seen.has(seq)) continue
+        seen.add(seq)
 
-      for (const item of ops) {
-        const opData = item.op
-        if (!opData) continue
+        if (seq < oldestSeq) oldestSeq = seq
 
-        // Check if it's the array format [type_num, value] or object format { type, value }
-        let opType: string | number
-        let opValue: any
+        const [opType, opValue] = tx.op
 
-        if (Array.isArray(opData)) {
-          opType = opData[0]
-          opValue = opData[1]
-        } else if (typeof opData === "object") {
-          opType = opData.type
-          opValue = opData.value
-        } else {
+        // Only process comment_benefactor_reward operations
+        if (opType !== "comment_benefactor_reward") continue
+
+        const timestamp = tx.timestamp || ""
+        const ts = new Date(timestamp.endsWith("Z") ? timestamp : timestamp + "Z")
+
+        // Stop if we've gone past our date range
+        if (ts < cutoff) {
+          keepGoing = false
           continue
         }
 
-        // Accept both numeric 39 and string "comment_benefactor_reward_operation"
-        const isTargetOp =
-          opType === 39 ||
-          opType === "comment_benefactor_reward_operation" ||
-          (typeof opType === "string" && opType.includes("benefactor"))
+        console.log("[v0] Found benefactor reward:", timestamp, opValue)
 
-        if (!isTargetOp) continue
-        if (opValue.benefactor !== account) continue
-
-        const timestamp = item.timestamp || ""
-        const ts = new Date(timestamp.endsWith("Z") ? timestamp : timestamp + "Z")
-        if (ts < cutoff) {
-          keepGoing = false
-          break
-        }
-
-        const hbd = parseAsset(opValue.hbd_payout)
-        const hive = parseAsset(opValue.hive_payout)
-        const vests = parseAsset(opValue.vesting_payout)
+        const hbd = parseAsset(opValue.hbd_payout as string)
+        const hive = parseAsset(opValue.hive_payout as string)
+        const vests = parseAsset(opValue.vesting_payout as string)
 
         const day = dayKey(timestamp)
 
@@ -185,9 +142,11 @@ export async function GET(req: NextRequest) {
         totals.count += 1
       }
 
-      block -= 1000
-      scanned += 1000
-      if (block <= 0) break
+      // Move to older history
+      if (oldestSeq <= 1 || history.length < batchSize) {
+        break
+      }
+      start = oldestSeq - 1
     }
 
     const by_day = Array.from(daily.values()).sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -195,7 +154,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       account,
       range_days: days,
-      source: "rpc_enum_virtual_ops",
       totals: {
         hbd: Number(totals.hbd.toFixed(3)),
         hive: Number(totals.hive.toFixed(3)),
@@ -205,7 +163,7 @@ export async function GET(req: NextRequest) {
       by_day,
     })
   } catch (err) {
-    console.error("Virtual ops error:", err)
+    console.error("Account history error:", err)
     return NextResponse.json({ error: "Failed to fetch beneficiary rewards" }, { status: 500 })
   }
 }

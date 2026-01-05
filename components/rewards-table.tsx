@@ -6,6 +6,7 @@ interface RewardEntry {
   hbd: number
   hive: number
   vests: number
+  count: number
 }
 
 interface RewardsTableProps {
@@ -31,6 +32,7 @@ export function RewardsTable({ data }: RewardsTableProps) {
                 <TableHead className="text-right">HBD</TableHead>
                 <TableHead className="text-right">HIVE</TableHead>
                 <TableHead className="text-right">VESTS</TableHead>
+                <TableHead className="text-right">Payouts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -40,6 +42,7 @@ export function RewardsTable({ data }: RewardsTableProps) {
                   <TableCell className="text-right">{row.hbd.toFixed(3)}</TableCell>
                   <TableCell className="text-right">{row.hive.toFixed(3)}</TableCell>
                   <TableCell className="text-right">{row.vests.toFixed(6)}</TableCell>
+                  <TableCell className="text-right">{row.count}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

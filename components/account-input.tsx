@@ -18,7 +18,7 @@ export function AccountInput({ value, onChange }: AccountInputProps) {
         id="account"
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.toLowerCase())}
         placeholder="e.g. hbdstabilizer"
         className="w-full md:w-64 text-sm"
       />

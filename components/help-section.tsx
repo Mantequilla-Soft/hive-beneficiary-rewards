@@ -74,7 +74,11 @@ export function HelpSection() {
 
         <div className="mt-3 sm:mt-4 rounded-md bg-muted/30 px-2 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs text-muted-foreground">
           <strong className="text-foreground">What are beneficiary rewards?</strong>
-          <span className="ml-1">A portion of post rewards automatically sent to designated accounts.</span>
+          <span className="ml-1">
+            Beneficiary rewards on the Hive Blockchain are a built-in way to share a portion of a post's payout with
+            other accounts automatically. Instead of the author receiving 100% of the rewards, the author can assign
+            percentages to one or more beneficiaries.
+          </span>
         </div>
       </CardContent>
     </Card>

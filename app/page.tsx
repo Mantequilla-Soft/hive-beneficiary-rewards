@@ -55,16 +55,16 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-background animate-[fade-in_0.5s_ease-out]">
-      <div className="mx-auto max-w-5xl px-4 py-8">
+    <main className="flex min-h-screen flex-col bg-background animate-[fade-in_0.5s_ease-out]">
+      <div className="mx-auto w-full max-w-5xl flex-1 px-3 py-6 sm:px-4 sm:py-8">
         <DashboardHeader />
 
         <HelpSection />
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between animate-[slide-up_0.4s_ease-out_0.1s_both]">
+        <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:gap-4 md:flex-row md:items-end md:justify-between animate-[slide-up_0.4s_ease-out_0.1s_both]">
           <AccountInput value={account} onChange={setAccount} />
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
             <Button
               onClick={handleFetch}
@@ -84,7 +84,7 @@ export default function Page() {
         </div>
 
         {error && (
-          <div className="mt-6 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 animate-[scale-in_0.3s_ease-out]">
+          <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 sm:mt-6 sm:px-4 sm:py-3 animate-[scale-in_0.3s_ease-out]">
             {error}
           </div>
         )}
@@ -101,7 +101,7 @@ export default function Page() {
             />
 
             {data.by_day.length === 0 ? (
-              <div className="mt-8 rounded-md border border-muted bg-muted/30 px-4 py-8 text-center text-muted-foreground animate-[fade-in_0.5s_ease-out]">
+              <div className="mt-6 rounded-md border border-muted bg-muted/30 px-3 py-6 text-center text-sm text-muted-foreground sm:mt-8 sm:px-4 sm:py-8 animate-[fade-in_0.5s_ease-out]">
                 No beneficiary rewards found for this account in the selected time range.
               </div>
             ) : (

@@ -10,8 +10,8 @@ interface AccountInputProps {
 
 export function AccountInput({ value, onChange }: AccountInputProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="account" className="text-sm font-medium">
+    <div className="flex flex-col gap-1.5 sm:gap-2 w-full md:w-auto">
+      <Label htmlFor="account" className="text-xs sm:text-sm font-medium">
         Account name
       </Label>
       <Input
@@ -20,7 +20,7 @@ export function AccountInput({ value, onChange }: AccountInputProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="e.g. hbdstabilizer"
-        className="w-full sm:w-64"
+        className="w-full md:w-64 text-sm"
       />
     </div>
   )

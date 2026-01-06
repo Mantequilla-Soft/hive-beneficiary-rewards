@@ -44,7 +44,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   ]
 
   return (
-    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
       {cards.map((card, index) => {
         const Icon = card.icon
         return (
@@ -62,16 +62,22 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
             {card.highlight && (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
             )}
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-              <Icon className={`h-4 w-4 ${card.highlight ? "text-primary" : "text-muted-foreground/60"}`} />
+            <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 sm:p-6 sm:pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground sm:text-sm">{card.title}</CardTitle>
+              <Icon
+                className={`h-3 w-3 sm:h-4 sm:w-4 ${card.highlight ? "text-primary" : "text-muted-foreground/60"}`}
+              />
             </CardHeader>
-            <CardContent>
-              <p className={`text-2xl font-bold tracking-tight ${card.highlight ? "text-primary" : "text-foreground"}`}>
-                {card.prefix && <span className="text-xl">{card.prefix}</span>}
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <p
+                className={`text-lg font-bold tracking-tight sm:text-2xl ${card.highlight ? "text-primary" : "text-foreground"}`}
+              >
+                {card.prefix && <span className="text-base sm:text-xl">{card.prefix}</span>}
                 {card.value}
               </p>
-              {card.suffix && <p className="text-xs text-muted-foreground mt-1">{card.suffix}</p>}
+              {card.suffix && (
+                <p className="text-[10px] text-muted-foreground mt-0.5 sm:text-xs sm:mt-1">{card.suffix}</p>
+              )}
             </CardContent>
           </Card>
         )

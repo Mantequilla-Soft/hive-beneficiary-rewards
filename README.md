@@ -1,30 +1,60 @@
 # Hive Beneficiary Rewards
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A simple dashboard to track and analyze beneficiary rewards for any Hive blockchain account.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/mantequilla-soft/v0-hive-beneficiary-rewards)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/gIjcDXfQLNK)
+## What are Beneficiary Rewards?
 
-## Overview
+When content creators on Hive set beneficiaries on their posts, a percentage of their post rewards goes to those beneficiary accounts. This tool helps beneficiary accounts track how much they've earned over time.
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Features
+
+- Track beneficiary rewards for any Hive account
+- View rewards in HBD, Hive Power (HP), and combined USD value
+- Filter by time range: Today, 7 Days, or 30 Days
+- Daily breakdown of all payouts
+- Real-time HIVE/HBD conversion using Hive internal market prices
+
+## Tech Stack
+
+- **Framework**: Next.js 15
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **API**: Hive Condenser API (api.hive.blog)
+
+## API Endpoints Used
+
+- `condenser_api.get_account_history` - Fetch account operations
+- `condenser_api.get_dynamic_global_properties` - Get VESTS to HP conversion rate
+- `condenser_api.get_ticker` - Get HIVE/HBD market price
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Run the development server: `npm run dev`
+4. Open [http://localhost:3000](http://localhost:3000)
 
 ## Deployment
 
-Your project is live at:
+This project is deployed on Vercel. You can deploy your own instance by clicking the button below:
 
-**[https://vercel.com/mantequilla-soft/v0-hive-beneficiary-rewards](https://vercel.com/mantequilla-soft/v0-hive-beneficiary-rewards)**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Mantequilla-Soft/hive-beneficiary-rewards)
 
-## Build your app
+## Support the Hive Blockchain
 
-Continue building your app on:
+Consider voting for these witnesses to help secure the Hive network:
 
-**[https://v0.app/chat/gIjcDXfQLNK](https://v0.app/chat/gIjcDXfQLNK)**
+- [@aliento](https://witness.aliento.blog/witness/aliento)
+- [@snapie](https://witness.aliento.blog/witness/snapie)
+- [@threespeak](https://witness.aliento.blog/witness/threespeak)
 
-## How It Works
+## Links
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- [Hive.io](https://hive.io/eco)
+- [Mantequilla Soft](https://mantequilla-soft.com)
+- [Proyecto Aliento](https://proyectoaliento.com)
+- [HolaHive](https://holahive.com)
+
+## License
+
+MIT

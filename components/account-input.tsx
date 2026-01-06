@@ -19,7 +19,7 @@ export function AccountInput({ value, onChange }: AccountInputProps) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Enter account name"
+        placeholder="e.g. hbdstabilizer"
         className="w-full sm:w-64"
       />
     </div>

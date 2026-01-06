@@ -6,12 +6,13 @@ import { AccountInput } from "@/components/account-input"
 import { TimeRangeSelector } from "@/components/time-range-selector"
 import { SummaryCards } from "@/components/summary-cards"
 import { RewardsTable } from "@/components/rewards-table"
+import { HelpSection } from "@/components/help-section"
 import { Button } from "@/components/ui/button"
 
 type TimeRange = "today" | "7days" | "30days"
 
 export default function Page() {
-  const [account, setAccount] = useState("spk.beneficiary")
+  const [account, setAccount] = useState("")
   const [timeRange, setTimeRange] = useState<TimeRange>("7days")
 
   const [data, setData] = useState<any>(null)
@@ -25,13 +26,18 @@ export default function Page() {
   }
 
   async function handleFetch() {
+    if (!account.trim()) {
+      setError("Please enter a Hive account name")
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
 
       const days = daysMap[timeRange]
 
-      const res = await fetch(`/api/beneficiary-rewards?account=${account}&days=${days}`)
+      const res = await fetch(`/api/beneficiary-rewards?account=${account.trim()}&days=${days}`)
 
       if (!res.ok) {
         throw new Error("Failed to fetch beneficiary rewards")
@@ -52,6 +58,8 @@ export default function Page() {
       <div className="mx-auto max-w-5xl px-4 py-8">
         <DashboardHeader />
 
+        <HelpSection />
+
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between animate-[slide-up_0.4s_ease-out_0.1s_both]">
           <AccountInput value={account} onChange={setAccount} />
 
@@ -60,7 +68,7 @@ export default function Page() {
             <Button
               onClick={handleFetch}
               className="w-full sm:w-auto transition-transform duration-200 hover:scale-105 active:scale-95"
-              disabled={loading}
+              disabled={loading || !account.trim()}
             >
               {loading ? (
                 <span className="flex items-center gap-2">

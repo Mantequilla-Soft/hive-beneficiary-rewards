@@ -1,0 +1,10 @@
+# Robots.txt for Hive Beneficiary Rewards
+
+User-agent: *
+Allow: /
+
+# Disallow API routes from being indexed
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://hive-beneficiary-rewards.vercel.app/sitemap.xml

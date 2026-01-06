@@ -7,6 +7,7 @@ import { TimeRangeSelector } from "@/components/time-range-selector"
 import { SummaryCards } from "@/components/summary-cards"
 import { RewardsTable } from "@/components/rewards-table"
 import { HelpSection } from "@/components/help-section"
+import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 
 type TimeRange = "today" | "7days" | "30days"
@@ -109,6 +110,7 @@ export default function Page() {
           </div>
         )}
       </div>
+      <Footer />
     </main>
   )
 }

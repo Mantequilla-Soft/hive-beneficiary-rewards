@@ -4,6 +4,7 @@ import { DollarSign, Coins, Zap, Hash } from "lucide-react"
 interface SummaryCardsProps {
   summary: {
     totalHbd?: number
+    totalHive?: number
     totalHp?: number
     totalValue?: number
     payoutCount?: number
@@ -16,6 +17,13 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       title: "Total HBD",
       value: (summary.totalHbd ?? 0).toFixed(3),
       suffix: "HBD",
+      icon: Coins,
+      highlight: false,
+    },
+    {
+      title: "Total HIVE",
+      value: (summary.totalHive ?? 0).toFixed(3),
+      suffix: "HIVE",
       icon: Coins,
       highlight: false,
     },
@@ -44,7 +52,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   ]
 
   return (
-    <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
+    <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-5">
       {cards.map((card, index) => {
         const Icon = card.icon
         return (

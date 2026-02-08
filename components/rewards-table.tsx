@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 interface RewardEntry {
   date: string
   hbd: number
+  hive: number
   hp: number
   totalHbd: number
   payouts: number
@@ -35,6 +36,9 @@ export function RewardsTable({ data }: RewardsTableProps) {
                   HBD
                 </TableHead>
                 <TableHead className="text-right text-muted-foreground font-medium text-xs sm:text-sm px-2 sm:px-4">
+                  HIVE
+                </TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium text-xs sm:text-sm px-2 sm:px-4">
                   HP
                 </TableHead>
                 <TableHead className="text-right text-muted-foreground font-medium text-xs sm:text-sm px-2 sm:px-4">
@@ -60,6 +64,9 @@ export function RewardsTable({ data }: RewardsTableProps) {
                   </TableCell>
                   <TableCell className="text-right text-foreground/80 tabular-nums text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-4">
                     {(row.hbd ?? 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right text-foreground/80 tabular-nums text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-4">
+                    {(row.hive ?? 0).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-right text-foreground/80 tabular-nums text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-4">
                     {(row.hp ?? 0).toFixed(2)}

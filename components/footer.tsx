@@ -192,7 +192,7 @@ export function Footer() {
           <p className="text-[10px] sm:text-xs text-muted-foreground text-center sm:text-left">
             Built with love for the Hive community
           </p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground" suppressHydrationWarning>
             &copy; {new Date().getFullYear()} Mantequilla Soft
           </p>
         </div>

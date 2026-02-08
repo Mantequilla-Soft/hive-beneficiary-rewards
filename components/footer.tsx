@@ -1,8 +1,10 @@
+"use client"
+
 import { ExternalLink, Heart, Code, Globe, Users, Server } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-border/50 bg-card/30 animate-[fade-in_0.5s_ease-out_0.3s_both]">
+    <footer className="mt-auto border-t border-border/50 bg-card/30 animate-[fade-in_0.5s_ease-out_0.3s_both]" suppressHydrationWarning>
       <div className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
           {/* Project Links */}
@@ -192,7 +194,7 @@ export function Footer() {
           <p className="text-[10px] sm:text-xs text-muted-foreground text-center sm:text-left">
             Built with love for the Hive community
           </p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground" suppressHydrationWarning>
             &copy; {new Date().getFullYear()} Mantequilla Soft
           </p>
         </div>

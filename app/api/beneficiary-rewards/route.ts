@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 interface DailyRow {
   date: string
   hbd: number
+  hive: number
   hp: number
   payouts: number
   hivePrice: number
@@ -93,6 +94,7 @@ export async function GET(req: NextRequest) {
 
   // Totals
   let totalHbd = 0
+  let totalHive = 0
   let totalHp = 0
   let totalPayouts = 0
 
@@ -134,6 +136,7 @@ export async function GET(req: NextRequest) {
         }
 
         const hbd = parseAsset(opValue.hbd_payout as any)
+        const hive = parseAsset(opValue.hive_payout as any)
         const vests = parseAsset(opValue.vesting_payout as any)
 
         // Convert VESTS -> HP
@@ -145,6 +148,7 @@ export async function GET(req: NextRequest) {
           daily.set(day, {
             date: day,
             hbd: 0,
+            hive: 0,
             hp: 0,
             payouts: 0,
             hivePrice: hivePrice,
@@ -153,10 +157,12 @@ export async function GET(req: NextRequest) {
 
         const d = daily.get(day)!
         d.hbd += hbd
+        d.hive += hive
         d.hp += hp
         d.payouts += 1
 
         totalHbd += hbd
+        totalHive += hive
         totalHp += hp
         totalPayouts += 1
       }
@@ -167,7 +173,7 @@ export async function GET(req: NextRequest) {
 
     const by_day = Array.from(daily.values()).sort((a, b) => (a.date < b.date ? 1 : -1))
 
-    const totalValue = totalHbd + totalHp * hivePrice
+    const totalValue = totalHbd + totalHive * hivePrice + totalHp * hivePrice
 
     return NextResponse.json({
       account,
@@ -175,6 +181,7 @@ export async function GET(req: NextRequest) {
       hivePrice: Number(hivePrice.toFixed(3)),
       totals: {
         hbd: Number(totalHbd.toFixed(3)),
+        hive: Number(totalHive.toFixed(3)),
         hp: Number(totalHp.toFixed(3)),
         totalValue: Number(totalValue.toFixed(3)),
         payouts: totalPayouts,
@@ -182,8 +189,9 @@ export async function GET(req: NextRequest) {
       by_day: by_day.map((r) => ({
         date: r.date,
         hbd: Number(r.hbd.toFixed(3)),
+        hive: Number(r.hive.toFixed(3)),
         hp: Number(r.hp.toFixed(3)),
-        totalHbd: Number((r.hbd + r.hp * r.hivePrice).toFixed(3)),
+        totalHbd: Number((r.hbd + r.hive * r.hivePrice + r.hp * r.hivePrice).toFixed(3)),
         payouts: r.payouts,
       })),
     })

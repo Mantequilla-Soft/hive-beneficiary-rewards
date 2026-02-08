@@ -81,8 +81,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <head>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`font-sans antialiased`} suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -106,8 +106,6 @@ export default function RootLayout({
             }),
           }}
         />
-      </head>
-      <body className={`font-sans antialiased`}>
         {children}
         <Analytics />
       </body>

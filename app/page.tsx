@@ -9,6 +9,8 @@ import { RewardsTable } from "@/components/rewards-table"
 import { HelpSection } from "@/components/help-section"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { TrendingUp } from "lucide-react"
 
 type TimeRange = "today" | "7days" | "30days"
 
@@ -58,6 +60,19 @@ export default function Page() {
     <main className="flex min-h-screen flex-col bg-background animate-[fade-in_0.5s_ease-out]">
       <div className="mx-auto w-full max-w-5xl flex-1 px-3 py-6 sm:px-4 sm:py-8">
         <DashboardHeader />
+
+        <div className="mt-4 sm:mt-6 flex justify-center sm:justify-start">
+          <Link href="/voting">
+            <Button
+              variant="default"
+              size="default"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <TrendingUp className="h-4 w-4" />
+              Analyze Voting Activity
+            </Button>
+          </Link>
+        </div>
 
         <HelpSection />
 
